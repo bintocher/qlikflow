@@ -19,6 +19,7 @@ import requests
 import random
 import ast
 import csv
+import os
 from time import sleep
 from datetime import timedelta
 from requests_ntlm import HttpNtlmAuth
@@ -34,9 +35,11 @@ from airflow.plugins_manager import AirflowPlugin
 from airflow.operators.email import EmailOperator
 from airflow.providers.telegram.hooks.telegram import TelegramHook
 
+
 # Read config from json file
 def read_config():
-    file = '/home/airflow/airflow/dags/config.json'
+# Get Airflow home folder with dags and config.json file
+    file = os.getenv('AIRFLOW_HOME') + '//config.json'
     with open(file, 'r') as f:
         config = json.load(f)
     return config
