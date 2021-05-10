@@ -1,4 +1,0 @@
-requests_ntlm==1.1.0
-requests==2.25.1
-apache-airflow>=2.0.0
-zeep==4.0.0

@@ -1,6 +1,14 @@
 # Changelog
 
-## version 1.0
+## verison 1.0.2
+
+- add package dependencies
+
+## verison 1.0.1
+
+- remove unused files
+
+## version 1.0.0
 
 - initial commit
 
