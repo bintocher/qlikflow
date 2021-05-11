@@ -1,5 +1,22 @@
 # Changelog
 
+## verison 1.0.7
+
+### Add
+
+- add dependency apache-airflow[telegram]
+
+- in `readme.md` add shields for git repository and pipy installs
+
+### Change
+
+- remove "root" param in certs for qlik sense servers
+
+### Fix
+
+- fix path for qlik sense certificates
+
+
 ## verison 1.0.6
 
 - fix config.json location to AIRFLOW_HOME/config/
