@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qlikflow"
-version = "1.0.6"
+version = "1.0.7"
 description = "This module allows you to create simple Apache Airflow DAG files-constructors for QlikView, Qlik Sense and NPrinting."
 authors = ["bintocher <schernov1@gmail.com>"]
 license = "Apache-2.0"
@@ -15,6 +15,7 @@ python = "^3.6"
 requests = "^2.25.1"
 requests-ntlm = "^1.1.0"
 zeep = "^4.0.0"
+apache-airflow-providers-telegram = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
 
