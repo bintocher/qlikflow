@@ -1,5 +1,15 @@
 # Changelog
 
+## verison 1.0.5
+
+- lowered version for required dependencies
+
+- exclude airflow dep's from install
+
+## verison 1.0.4
+
+- update config.json folder from AIRFLOW_HOME env
+
 ## verison 1.0.3
 
 - update documentation info in pip package

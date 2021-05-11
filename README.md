@@ -10,6 +10,12 @@ This module allows you to create simple Apache Airflow DAG files-constructors fo
 pip3 install qlikflow
 ```
 
+## Upgrade
+
+``` bash
+pip3 install qlikflow -U
+```
+
 ## Create config-file
 
 Open ``config_generator.py`` with your IDE editor, and set settings, save script
@@ -21,10 +27,12 @@ Put this ``config.json`` file on your Apache Airflow server in folder with ``DAG
 ## Use in DAG-files
 
 ``` python
+
 from airflow import DAG
 from airflow.utils.dates import days_ago
-import qlikflow
+from qlikflow import qlikflow
 from datetime import datetime
+
 
 tasksDict = {
     u'qliksense. Test task': {
