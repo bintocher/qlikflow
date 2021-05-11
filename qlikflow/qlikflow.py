@@ -39,7 +39,7 @@ from airflow.providers.telegram.hooks.telegram import TelegramHook
 # Read config from json file
 def read_config():
 # Get Airflow home folder with dags and config.json file
-    file = os.getenv('AIRFLOW_HOME') + '//config.json'
+    file = os.getenv('AIRFLOW_HOME') + '/config/config.json'
     with open(file, 'r') as f:
         config = json.load(f)
     return config
@@ -68,7 +68,7 @@ def get_qs_tasks(*args, **kwargs):
     qs_password = kwargs.get('qs_password')
     qs_filename = kwargs.get('qs_filename')
     certificate = kwargs.get('certificate')
-    root = kwargs.get('root_cert')
+    root = os.getenv('AIRFLOW_HOME') + '/cert/' + kwargs.get('root_cert')
 
     xrfkey = ''.join(random.sample('qwertyuiopasdfghjklzxcvbnm1234567890', 16))
 
@@ -241,7 +241,7 @@ def qv_run_task(*args, **kwargs):
         message = 'DAG: {}\nTASK: {}\nFailed to start QV task: {}\nERROR : {}'.format( kwargs.get('mydagid'), kwargs.get('mytaskid') , qv_taskid , e)
         raise AirflowException (message)
     
-    check_sleep_time = 10  # seconds, время, через которое осуществлять проверку
+    check_sleep_time = 10  # seconds, sleep interval
     last_check_error = None
     while True:
         sleep(check_sleep_time)
@@ -480,7 +480,7 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
 
     if 'Dep' in tasksDict[task]:
         for dep in tasksDict[task]['Dep']:
-            airflowTasksDict[newtask].set_upstream(airflowTasksDict[dep]) # перед чем должно быть выполнено
+            airflowTasksDict[newtask].set_upstream(airflowTasksDict[dep]) # dep's
    
     if 'OnFail' in tasksDict[task]:
         if tasksDict[task]['OnFail'].get('mail') != None:

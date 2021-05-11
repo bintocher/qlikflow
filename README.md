@@ -4,6 +4,10 @@
 
 This module allows you to create simple Apache Airflow DAG files-constructors for QlikView, Qlik Sense and NPrinting.
 
+## Changelog
+
+See ``CHANGELOG.md``
+
 ## Install
 
 ``` bash
@@ -22,7 +26,7 @@ Open ``config_generator.py`` with your IDE editor, and set settings, save script
 
 Then run script to create ``config.json`` file
 
-Put this ``config.json`` file on your Apache Airflow server in folder with ``DAG``'s
+Put this ``config.json`` file on your Apache Airflow server in folder: ``AIRFLOW_HOME/config/``
 
 ## Use in DAG-files
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## verison 1.0.6
+
+- fix config.json location to AIRFLOW_HOME/config/
+
+- fix cert's location to AIRFLOW_HOME/cert/
+
 ## verison 1.0.5
 
 - lowered version for required dependencies

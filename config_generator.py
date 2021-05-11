@@ -60,8 +60,9 @@ def save_config():
             # Qlik Sense exported certificates path's
             # You can get it from https://qliksense.server.name/qmc/certificates
             # Export in PEM-format and then put it to airflow server
-            "certificate" : ('/home/airflow/airflow/certs/client.pem', '/home/airflow/airflow/certs/client_key.pem'), 
-            "root_cert" : '/home/airflow/airflow/certs/root.pem', 
+            # put it in AIRFLOW_HOME/cert folder
+            "certificate" : ('client.pem', 'client_key.pem'), 
+            "root_cert" : 'root.pem', 
         },
         # Telegram parameter used for send messages to telegram channels
         # Create a new bot from https://t.me/botfather
