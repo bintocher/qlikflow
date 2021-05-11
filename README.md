@@ -1,6 +1,10 @@
-# qlikflow
+[![GitHub stars](https://img.shields.io/github/stars/bintocher/qlikflow.svg)](https://github.com/bintocher/qlikflow/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/bintocher/qlikflow.svg)](https://github.com/bintocher/qlikflow/issues)
+[![GitHub contributors](https://img.shields.io/github/contributors/bintocher/qlikflow.svg)](https://github.com/bintocher/qlikflow/graphs/contributors)
+[![GitHub license](https://img.shields.io/github/license/bintocher/qlikflow.svg)](https://github.com/bintocher/qlikflow/blob/master/LICENSE)
+[![Pipy Installs](https://img.shields.io/pypi/dm/qlikflow)](https://img.shields.io/pypi/dm/qlikflow)
 
-## Description
+# qlikflow
 
 This module allows you to create simple Apache Airflow DAG files-constructors for QlikView, Qlik Sense and NPrinting.
 
