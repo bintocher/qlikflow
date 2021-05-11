@@ -67,8 +67,9 @@ def get_qs_tasks(*args, **kwargs):
     qs_username = kwargs.get('qs_username')
     qs_password = kwargs.get('qs_password')
     qs_filename = kwargs.get('qs_filename')
-    certificate = kwargs.get('certificate')
-    root = os.getenv('AIRFLOW_HOME') + '/cert/' + kwargs.get('root_cert')
+    certificate_temp = kwargs.get('certificate')
+    certificate = ( os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[0] , os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[1]  )
+    # root = os.getenv('AIRFLOW_HOME') + '/cert/' + kwargs.get('root_cert')
 
     xrfkey = ''.join(random.sample('qwertyuiopasdfghjklzxcvbnm1234567890', 16))
 
@@ -135,8 +136,9 @@ def qs_run_task(*args, **kwargs):
     qs_password = kwargs.get('qs_password')
     qs_taskid = kwargs.get('qs_taskid')
     random_delay = kwargs.get('random_delay')
-    certificate = kwargs.get('certificate')
-    root = kwargs.get('root_cert')
+    certificate_temp = kwargs.get('certificate')
+    certificate = ( os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[0] , os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[1]  )
+    # root = kwargs.get('root_cert')
 
     if random_delay != None:
         random.seed()
