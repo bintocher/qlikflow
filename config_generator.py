@@ -62,7 +62,7 @@ def save_config():
             # Export in PEM-format and then put it to airflow server
             # put it in AIRFLOW_HOME/cert folder
             "certificate" : ('client.pem', 'client_key.pem'), 
-            "root_cert" : 'root.pem', 
+            # "root_cert" : 'root.pem', 
         },
         # Telegram parameter used for send messages to telegram channels
         # Create a new bot from https://t.me/botfather
