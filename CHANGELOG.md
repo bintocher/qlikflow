@@ -1,5 +1,15 @@
 # Changelog
 
+## verison 1.0.8
+
+### Fix
+
+- fix error `File "/home/airflow/.local/lib/python3.6/site-packages/qlikflow/qlikflow.py", line 459, in create_aftask`
+
+### Add
+
+- add `dockerfile` and update `docker-compose.yaml`
+
 ## verison 1.0.7
 
 ### Add
