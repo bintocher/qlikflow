@@ -1,5 +1,11 @@
 # Changelog
 
+## verison 1.0.9
+
+### Add
+
+- update documentations files; for config.json, dag creation dict{} and folders in docker folder
+
 ## verison 1.0.8
 
 ### Fix
