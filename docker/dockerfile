@@ -1,2 +1,2 @@
 FROM apache/airflow:2.0.2
-RUN pip install --no-cache-dir qlikflow apache-airflow-providers-telegram
+RUN pip install --no-cache-dir qlikflow==1.0.9 apache-airflow-providers-telegram
