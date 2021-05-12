@@ -8,9 +8,13 @@
 
 This module allows you to create simple Apache Airflow DAG files-constructors for QlikView, Qlik Sense and NPrinting.
 
-## Changelog
+## Information files
 
-See ``CHANGELOG.md``
+- Changelog : https://github.com/bintocher/qlikflow/blob/main/CHANGELOG.md
+
+- Manual(en) : https://github.com/bintocher/qlikflow/blob/main/doc/readme.md
+
+- This readme : https://github.com/bintocher/qlikflow/blob/main/README.md
 
 ## Install
 
