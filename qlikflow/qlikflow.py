@@ -28,11 +28,8 @@ from zeep.transports import Transport
 from airflow import DAG
 from airflow.exceptions import AirflowException
 from airflow.utils.log.logging_mixin import LoggingMixin
-from airflow.utils.dates import days_ago
-from airflow.sensors.time_delta import TimeDeltaSensor # qv_np_default.py:17 DeprecationWarning: This module is deprecated. Please use `airflow.sensors.time_delta`.
+from airflow.sensors.time_delta import TimeDeltaSensor
 from airflow.operators.python import PythonOperator
-from airflow.plugins_manager import AirflowPlugin
-from airflow.operators.email import EmailOperator
 from airflow.providers.telegram.hooks.telegram import TelegramHook
 
 
@@ -69,7 +66,6 @@ def get_qs_tasks(*args, **kwargs):
     qs_filename = kwargs.get('qs_filename')
     certificate_temp = kwargs.get('certificate')
     certificate = ( os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[0] , os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[1]  )
-    # root = os.getenv('AIRFLOW_HOME') + '/cert/' + kwargs.get('root_cert')
 
     xrfkey = ''.join(random.sample('qwertyuiopasdfghjklzxcvbnm1234567890', 16))
 
@@ -93,7 +89,7 @@ def get_qs_tasks(*args, **kwargs):
     
     url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)
     start_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
-    
+
     if start_response.status_code == 200:
         content = byte_to_dict(start_response.content)
         print ('Tasks total count = {}'.format(len(content)))
@@ -117,7 +113,6 @@ def get_qs_tasks(*args, **kwargs):
                 content["stream_name"] = ''
 
             result_list.append(content)
-            # print ('\n' * 5)
 
         print ('Total items in list = {}'.format(len(result_list)))
 
@@ -138,7 +133,6 @@ def qs_run_task(*args, **kwargs):
     random_delay = kwargs.get('random_delay')
     certificate_temp = kwargs.get('certificate')
     certificate = ( os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[0] , os.getenv('AIRFLOW_HOME') + '/cert/' + certificate_temp[1]  )
-    # root = kwargs.get('root_cert')
 
     if random_delay != None:
         random.seed()
@@ -186,6 +180,8 @@ def qs_run_task(*args, **kwargs):
         url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)    
         exec_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
         result = byte_to_dict(exec_response.content)
+        
+        print (result)
 
         allstatuses = ['0: NeverStarted' ,  '1: Triggered' ,  '2: Started' , '3: Queued', 
             '4: AbortInitiated', '5: Aborting', '6: Aborted', '7: FinishedSuccess',
@@ -517,7 +513,9 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
         airflowTasksDict[newtask].pool = setpool
 
 def create_tasks(tasksDict, airflowTasksDict, dag):
-    
+    """
+        Create Airflow tasks from ``tasksDict``
+    """
     for task in tasksDict.keys():
         
         if 'Soft' in tasksDict[task]:
