@@ -41,23 +41,18 @@ def read_config():
         config = json.load(f)
     return config
 
-config = read_config()
-
-
-def onsuccess_func(*args, **kwargs):
-    pass
-
-def onfail_func(*args, **kwargs):
-    pass
 
 def sendlog_telegram(msg, chatid):
+    config = read_config()
     telegram_hook = TelegramHook(token=config["telegram"]["token"], chat_id=chatid)
     telegram_hook.send_message({"text": msg})
     pass
 
+
 def sleep_task(*args, **kwargs):
     sleep_seconds = kwargs.get('sleep_timer')
     sleep(sleep_seconds)
+
 
 def get_qs_tasks(*args, **kwargs):
     qs_server = kwargs.get('qs_server')
@@ -126,6 +121,7 @@ def get_qs_tasks(*args, **kwargs):
 
 
 def qs_run_task(*args, **kwargs):
+    config = read_config()
     qs_server = kwargs.get('qs_server')
     qs_username = kwargs.get('qs_username')
     qs_password = kwargs.get('qs_password')
@@ -182,8 +178,6 @@ def qs_run_task(*args, **kwargs):
         exec_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
         result = byte_to_dict(exec_response.content)
 
-        # print (result)
-
         allstatuses = ['0: NeverStarted' ,  '1: Triggered' ,  '2: Started' , '3: Queued', 
             '4: AbortInitiated', '5: Aborting', '6: Aborted', '7: FinishedSuccess',
             '8: FinishedFail', '9: Skipped', '10: Retry', '11: Error', '12: Reset']
@@ -198,20 +192,15 @@ def qs_run_task(*args, **kwargs):
         elif status in good_status:
             print ('All complete!')
             break
-        else:
-            break
-
-        
-
     
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
-        print (msg)
         t.send_message({"text": msg})
     
 
 def qv_run_task(*args, **kwargs):
+    config = read_config()
     qv_server = kwargs.get('qv_server')
     qv_port = kwargs.get('qv_port')
     qv_extraurl = kwargs.get('qv_extraurl')
@@ -272,13 +261,13 @@ def qv_run_task(*args, **kwargs):
             raise AirflowException("QlikView task failed with status - The task has a distributiongroup unavailable")
 
     if kwargs.get('telegram_ok') != None:
-        #print ('create hook')
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
         print (msg)
         t.send_message({"text": msg})
 
 def np_run_task(*args, **kwargs):
+    config = read_config()
     np_server = kwargs.get('np_server')
     np_credential = kwargs.get('np_credential')
     np_password = kwargs.get('np_password')
@@ -353,7 +342,6 @@ def np_run_task(*args, **kwargs):
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
-        # print (msg)
         t.send_message({"text": msg})
 
 def clean_for_taskid(name):
@@ -361,6 +349,7 @@ def clean_for_taskid(name):
     return newname
 
 def create_aftask(task, task_id, task_guid, dag, tasksDict):
+    config = read_config()
     args_telegram_ok = None
     args_telegram_fail = None
     args_mail_ok = None
@@ -476,7 +465,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
     return AirflowTask
 
 def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
-
+    config = read_config()
     if 'Dep' in tasksDict[task]:
         for dep in tasksDict[task]['Dep']:
             airflowTasksDict[newtask].set_upstream(airflowTasksDict[dep]) # dep's
@@ -515,7 +504,7 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
 
 def create_tasks(tasksDict, airflowTasksDict, dag):
     """
-        Create Airflow tasks from ``tasksDict``
+        Create Airflow tasks from ``Dict``
     """
     for task in tasksDict.keys():
         

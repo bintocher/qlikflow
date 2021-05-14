@@ -1,5 +1,15 @@
 # Changelog
 
+## verison 1.0.12
+
+### Change
+
+- currently, config.json file is read when the task is started, previously, it was read when the dag was started
+
+### Fix
+
+- airflow task was completed without waiting for the task to be completed in qlik sense server
+
 ## verison 1.0.11
 
 - some fixes, disable debug msg's
