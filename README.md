@@ -4,6 +4,7 @@
 ![Pipy Installs](https://img.shields.io/pypi/dm/qlikflow)
 ![Last commit](https://img.shields.io/github/last-commit/bintocher/qlikflow)
 ![Issues](https://img.shields.io/github/issues/bintocher/qlikflow)
+
 # qlikflow
 
 This module allows you to create simple Apache Airflow DAG files-constructors for QlikView, Qlik Sense and NPrinting.
@@ -86,4 +87,5 @@ qlikflow.create_tasks(tasksDict, airflowTasksDict, dag)
 ```
 
 This code convert into DAG like this:
+
 ![image](https://user-images.githubusercontent.com/8188055/117771014-020b1600-b279-11eb-9565-de198a12c9e2.png)

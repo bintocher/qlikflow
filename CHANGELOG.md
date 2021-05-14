@@ -1,5 +1,9 @@
 # Changelog
 
+## verison 1.0.11
+
+- some fixes, disable debug msg's
+
 ## verison 1.0.10
 
 testing version

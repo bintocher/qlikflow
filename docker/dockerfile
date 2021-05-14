@@ -1,3 +1,3 @@
 FROM apache/airflow:latest
 RUN pip install apache-airflow-providers-telegram  --user
-RUN pip install --no-cache-dir qlikflow==1.0.10 -U --user
+RUN pip install --no-cache-dir qlikflow==1.0.11 -U --user
