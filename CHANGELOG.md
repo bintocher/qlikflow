@@ -1,5 +1,13 @@
 # Changelog
 
+## verison 1.0.13
+
+### Add
+
+- new parameter - "DeleteFiles", list-type, start after task completed. used in qv/qs/np
+
+in linux system you can easy mount windows-like shared folders of whole disk, [link](https://www.google.com/search?q=linux+mount+windows+share)
+
 ## verison 1.0.12
 
 ### Change

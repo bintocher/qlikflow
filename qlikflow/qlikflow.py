@@ -193,6 +193,13 @@ def qs_run_task(*args, **kwargs):
             print ('All complete!')
             break
     
+    # add remove files
+    filelist = kwargs.get('delete_files')
+    for i in range(len(filelist)):
+        if os.path.isfile(filelist[i]):
+            print ('Delete file : {}'.format(filelist[i]))
+            os.remove(filelist[i])
+
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
@@ -259,6 +266,15 @@ def qv_run_task(*args, **kwargs):
             raise AirflowException("QlikView task failed with status - The task is about to run but hasn't started yet")
         if status == 'Unrunnable':
             raise AirflowException("QlikView task failed with status - The task has a distributiongroup unavailable")
+
+
+    # add remove files
+    filelist = kwargs.get('delete_files')
+    for i in range(len(filelist)):
+        if os.path.isfile(filelist[i]):
+            print ('Delete file : {}'.format(filelist[i]))
+            os.remove(filelist[i])
+
 
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
@@ -339,6 +355,15 @@ def np_run_task(*args, **kwargs):
         if result["status"] == 'Aborted':
             raise AirflowException("NPrinting task failed with status Aborted")
 
+
+    # add remove files
+    filelist = kwargs.get('delete_files')
+    for i in range(len(filelist)):
+        if os.path.isfile(filelist[i]):
+            print ('Delete file : {}'.format(filelist[i]))
+            os.remove(filelist[i])
+
+
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
@@ -360,6 +385,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
     mytaskid = task_id
     warningisfail = None
     random_delay = None
+    delete_files = None
 
     if tasksDict[task].get('OnSuccess') != None:
         if tasksDict[task].get('OnSuccess').get('telegram') != None:
@@ -376,6 +402,10 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
     
     if tasksDict[task].get('RandomStartDelay') != None:
         random_delay = tasksDict[task].get('RandomStartDelay')
+    if tasksDict[task].get('DeleteFiles') != None:
+        delete_files = tasksDict[task].get('DeleteFiles')
+        if type(delete_files) is not list:
+            raise AirflowException ('In task {}, parameter "DeleteFiles" must be list, not {}'.format(task_id, str(type(delete_files)) ))
 
     # QS Get Task list
     if tasksDict[task]['Soft'] == 'get_qs_tasks':
@@ -411,6 +441,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             "mytaskid" : mytaskid,
             "np_warnisfail" : warningisfail,
             "random_delay" : random_delay,
+            "delete_files" : delete_files,
         }
         AirflowTask = PythonOperator(task_id=task_id, python_callable=np_run_task, op_kwargs=kwargs, dag=dag)
 
@@ -431,7 +462,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             "mydagid" : mydag,
             "mytaskid" : mytaskid,
             "random_delay" : random_delay,
-
+            "delete_files" : delete_files,
         }
         AirflowTask = PythonOperator(task_id=task_id, python_callable=qv_run_task, op_kwargs=kwargs, dag=dag)
         
@@ -451,6 +482,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             "mydagid" : mydag,
             "mytaskid" : mytaskid,
             "random_delay" : random_delay,
+            "delete_files" : delete_files,
             }
         AirflowTask = PythonOperator(task_id=task_id, python_callable=qs_run_task, op_kwargs=kwargs, dag=dag)
         # Sleep timer
