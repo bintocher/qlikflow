@@ -195,10 +195,11 @@ def qs_run_task(*args, **kwargs):
     
     # add remove files
     filelist = kwargs.get('delete_files')
-    for i in range(len(filelist)):
-        if os.path.isfile(filelist[i]):
-            print ('Delete file : {}'.format(filelist[i]))
-            os.remove(filelist[i])
+    if filelist != None:
+        for i in range(len(filelist)):
+            if os.path.isfile(filelist[i]):
+                print ('Delete file : {}'.format(filelist[i]))
+                os.remove(filelist[i])
 
     if kwargs.get('telegram_ok') != None:
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
@@ -270,10 +271,11 @@ def qv_run_task(*args, **kwargs):
 
     # add remove files
     filelist = kwargs.get('delete_files')
-    for i in range(len(filelist)):
-        if os.path.isfile(filelist[i]):
-            print ('Delete file : {}'.format(filelist[i]))
-            os.remove(filelist[i])
+    if filelist != None:
+        for i in range(len(filelist)):
+            if os.path.isfile(filelist[i]):
+                print ('Delete file : {}'.format(filelist[i]))
+                os.remove(filelist[i])
 
 
     if kwargs.get('telegram_ok') != None:
@@ -358,10 +360,11 @@ def np_run_task(*args, **kwargs):
 
     # add remove files
     filelist = kwargs.get('delete_files')
-    for i in range(len(filelist)):
-        if os.path.isfile(filelist[i]):
-            print ('Delete file : {}'.format(filelist[i]))
-            os.remove(filelist[i])
+    if filelist != None:
+        for i in range(len(filelist)):
+            if os.path.isfile(filelist[i]):
+                print ('Delete file : {}'.format(filelist[i]))
+                os.remove(filelist[i])
 
 
     if kwargs.get('telegram_ok') != None:

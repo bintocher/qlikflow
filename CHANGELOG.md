@@ -1,5 +1,11 @@
 # Changelog
 
+## verison 1.0.14
+
+### Fix
+
+- fix error without 'delete_files' parameter
+
 ## verison 1.0.13
 
 ### Add
