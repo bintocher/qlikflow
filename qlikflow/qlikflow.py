@@ -81,14 +81,14 @@ def get_qs_tasks(*args, **kwargs):
         dict_str = txt.decode("UTF-8").replace('\\\\','\\').replace(':null',':""').replace(':false',':False').replace(':true',':True')
         mydata = ast.literal_eval(dict_str)
         return mydata
-    
+
     url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)
     start_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
 
     if start_response.status_code == 200:
         content = byte_to_dict(start_response.content)
         print ('Tasks total count = {}'.format(len(content)))
-        
+
         result_list = []
 
         for task in content:
@@ -157,7 +157,7 @@ def qs_run_task(*args, **kwargs):
         dict_str = txt.decode("UTF-8").replace('\\\\','\\').replace(':null',':""').replace(':false',':False').replace(':true',':True')
         mydata = ast.literal_eval(dict_str)
         return mydata
-    
+
     if start_response.status_code != 201:
         raise AirflowException('Failed to start task {}'.format(qs_taskid))
 
@@ -166,7 +166,7 @@ def qs_run_task(*args, **kwargs):
         raise AirflowException ("The task is already running {} or can't start in this session".format(qs_taskid))
 
     endpoint = 'qrs/executionsession/{}'.format(session_id)
-    url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)    
+    url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)
     session_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
     exec_id = byte_to_dict(session_response.content)["executionResult"]["id"]
 
@@ -174,11 +174,11 @@ def qs_run_task(*args, **kwargs):
         sleep(1)
 
         endpoint = 'qrs/executionresult/{}'.format(exec_id)
-        url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)    
+        url = '{0}:4242/{1}?Xrfkey={2}'.format(qs_server, endpoint, xrfkey)
         exec_response = qs_session.get(url, headers=qs_headers, verify=False, cert=certificate)
         result = byte_to_dict(exec_response.content)
 
-        allstatuses = ['0: NeverStarted' ,  '1: Triggered' ,  '2: Started' , '3: Queued', 
+        allstatuses = ['0: NeverStarted' ,  '1: Triggered' ,  '2: Started' , '3: Queued',
             '4: AbortInitiated', '5: Aborting', '6: Aborted', '7: FinishedSuccess',
             '8: FinishedFail', '9: Skipped', '10: Retry', '11: Error', '12: Reset']
 
@@ -192,7 +192,7 @@ def qs_run_task(*args, **kwargs):
         elif status in good_status:
             print ('All complete!')
             break
-    
+
     # add remove files
     filelist = kwargs.get('delete_files')
     if filelist != None:
@@ -205,7 +205,17 @@ def qs_run_task(*args, **kwargs):
         t = TelegramHook(token=config["telegram"]["token"], chat_id=kwargs.get('telegram_ok'))
         msg = 'Airflow alert: DAG: {}\nTASK: {}\nStatus : Completed\n'.format(kwargs.get('mydagid'),kwargs.get('mytaskid'))
         t.send_message({"text": msg})
-    
+
+def get_new_session_qv(qv_username, qv_password, qv_server, qv_port, qv_extraurl):
+    session = requests.session()
+    session.auth = HttpNtlmAuth(qv_username, qv_password)
+    wsdl = "{0}:{1}{2}".format(qv_server, qv_port, qv_extraurl)
+    client = Client(wsdl, transport=Transport(session=session))
+    service_key = client.service.GetTimeLimitedServiceKey()
+    client.transport.session.headers.update({'X-Service-Key': service_key})
+
+    return client
+
 
 def qv_run_task(*args, **kwargs):
     config = read_config()
@@ -216,6 +226,7 @@ def qv_run_task(*args, **kwargs):
     qv_password = kwargs.get('qv_password')
     qv_taskid = kwargs.get('qv_taskid')
     qv_dsid = kwargs.get('qv_dsid')
+    qv_getstatustimeout = kwargs.get('qv_getstatustimeout')
 
     random_delay = kwargs.get('random_delay')
     if random_delay != None:
@@ -224,49 +235,59 @@ def qv_run_task(*args, **kwargs):
         print ('Random delay in seconds - {}'.format(secs))
         sleep(secs)
 
-    session = requests.session()
-    session.auth = HttpNtlmAuth(qv_username, qv_password)
-    wsdl = "{0}:{1}{2}".format(qv_server, qv_port, qv_extraurl)
-    client = Client(wsdl, transport=Transport(session=session))
-    service_key = client.service.GetTimeLimitedServiceKey()
-    client.transport.session.headers.update({'X-Service-Key': service_key})
-    
+    # session = requests.session()
+    # session.auth = HttpNtlmAuth(qv_username, qv_password)
+    # wsdl = "{0}:{1}{2}".format(qv_server, qv_port, qv_extraurl)
+    # client = Client(wsdl, transport=Transport(session=session))
+    # service_key = client.service.GetTimeLimitedServiceKey()
+    # client.transport.session.headers.update({'X-Service-Key': service_key})
+    client = get_new_session_qv(qv_username, qv_password, qv_server, qv_port, qv_extraurl)
     try:
         execute_status = client.service.TriggerEDXTask(qv_dsid, qv_taskid, '')
     except Exception as e:
         message = 'DAG: {}\nTASK: {}\nFailed to start QV task: {}\nERROR : {}'.format( kwargs.get('mydagid'), kwargs.get('mytaskid') , qv_taskid , e)
         raise AirflowException (message)
-    
+
     check_sleep_time = 10  # seconds, sleep interval
-    last_check_error = None
+
+    if qv_getstatustimeout != None:
+        trycount_max = qv_getstatustimeout / check_sleep_time
+
+    trycount_errors = 0
+    trycounter_total = 0
     while True:
         sleep(check_sleep_time)
         status = 'Unknown'
         try:
-            service_key = client.service.GetTimeLimitedServiceKey()
-            client.transport.session.headers.update({'X-Service-Key': service_key})
+            # service_key = client.service.GetTimeLimitedServiceKey()
+            # client.transport.session.headers.update({'X-Service-Key': service_key})
+            client = get_new_session_qv(qv_username, qv_password, qv_server, qv_port, qv_extraurl)
             task_status = client.service.GetEDXTaskStatus(qv_dsid, execute_status.ExecId)
             status = task_status.TaskStatus
-            last_check_error = None
+            if task_status.TaskName[-15:] == '(work disabled)':
+                raise AirflowException("QlikView task failed with status - QlikView task is disabled")
+            if status == 'Completed':
+                break
+            if status == 'Warning':
+                raise AirflowException("QlikView task failed with status - The task completed with a warning")
+                break
+            if status == 'Failed':
+                raise AirflowException("QlikView task failed with status - Failed")
+            if status == 'Aborting':
+                raise AirflowException("QlikView task failed with status - Aborting")
+            if status == 'Disabled':
+                raise AirflowException("QlikView task failed with status - The task is about to run but hasn't started yet")
+            if status == 'Unrunnable':
+                raise AirflowException("QlikView task failed with status - The task has a distributiongroup unavailable")
         except Exception as e:
-            message = 'DAG: {}\nTASK: {}\nОшибка при попытке получить статус таска в QV: {}\nERROR : {}'.format( kwargs.get('mydagid'), kwargs.get('mytaskid') , qv_taskid , e)
-            raise AirflowException (message)
-        
-        if task_status.TaskName[-15:] == '(work disabled)':
-            raise AirflowException("QlikView task is disabled")
-        if status == 'Completed':
-            break
-        if status == 'Warning':
-            raise AirflowException("QlikView task failed with status - The task completed with a warning")
-            break
-        if status == 'Failed':
-            raise AirflowException("QlikView task failed with status Failed")
-        if status == 'Aborting':
-            raise AirflowException("QlikView task failed with status Aborting")
-        if status == 'Disabled':
-            raise AirflowException("QlikView task failed with status - The task is about to run but hasn't started yet")
-        if status == 'Unrunnable':
-            raise AirflowException("QlikView task failed with status - The task has a distributiongroup unavailable")
+            message = 'DAG: {} | TASK: {} | Error when trying ({} (current)/{} (total)) to get the task status in QV: {}\nError text: {}'.format( kwargs.get('mydagid'), kwargs.get('mytaskid'), trycount_errors, trycounter_total , qv_taskid , e)
+            if qv_getstatustimeout != None:
+                if trycount_errors >= trycount_max:
+                    raise AirflowException (message)
+            else:
+                raise AirflowException (message)
+            trycount_errors += 1
+        trycounter_total += 1
 
 
     # add remove files
@@ -308,14 +329,14 @@ def np_run_task(*args, **kwargs):
     np_session = requests.session()
 
     np_session.auth = HttpNtlmAuth(np_credential, np_password, np_session)
-    np_headers['User-Agent'] = 'Windows' 
+    np_headers['User-Agent'] = 'Windows'
 
     response = np_session.get('{0}/{1}'.format (np_server, 'login/ntlm'), headers=np_headers, verify=False)
     tokenstring = (np_session.cookies['NPWEBCONSOLE_XSRF-TOKEN'])
     np_headers['X-XSRF-TOKEN'] = tokenstring
-    
+
     urltorun = '{0}/{1}/{2}/executions'.format (np_server, 'tasks',np_taskid)
-    
+
     attemps = 10
     for i in range(attemps):
         try:
@@ -333,7 +354,7 @@ def np_run_task(*args, **kwargs):
             secs = random.random() * 9 + 1
             print ('Failed to start NP task, attempt = {} with sleep {} s.'.format(str(i+1),secs))
             sleep(secs)
-            
+
     np_exec_id = result["id"]
 
     check_sleep_time = 10 # in seconds
@@ -389,6 +410,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
     warningisfail = None
     random_delay = None
     delete_files = None
+    args_getstatustimeout = None
 
     if tasksDict[task].get('OnSuccess') != None:
         if tasksDict[task].get('OnSuccess').get('telegram') != None:
@@ -402,9 +424,10 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             args_mail_fail = tasksDict[task].get('OnFail').get('mail')
     if tasksDict[task].get('WarningIsFail') != None:
         warningisfail = tasksDict[task].get('WarningIsFail')
-    
     if tasksDict[task].get('RandomStartDelay') != None:
         random_delay = tasksDict[task].get('RandomStartDelay')
+    if tasksDict[task].get('GetStatusTimeout') != None:
+        args_getstatustimeout = tasksDict[task].get('GetStatusTimeout')
     if tasksDict[task].get('DeleteFiles') != None:
         delete_files = tasksDict[task].get('DeleteFiles')
         if type(delete_files) is not list:
@@ -458,6 +481,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             "qv_username" : config[tasksDict[task]['Soft']]["username"],
             "qv_password" : config[tasksDict[task]['Soft']]["password"],
             "qv_taskid" : task_guid,
+            "qv_getstatustimeout" : args_getstatustimeout,
             "mail_ok" : args_mail_ok,
             "mail_fail" : args_mail_fail,
             "telegram_ok" : args_telegram_ok,
@@ -468,7 +492,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
             "delete_files" : delete_files,
         }
         AirflowTask = PythonOperator(task_id=task_id, python_callable=qv_run_task, op_kwargs=kwargs, dag=dag)
-        
+
         # Qlik Sense
     if tasksDict[task]['Soft'][:2] == 'qs':
         kwargs = {
@@ -496,7 +520,7 @@ def create_aftask(task, task_id, task_guid, dag, tasksDict):
         sensorSeconds = tasksDict[task]["Seconds"]
         sensorTaskID = task_guid + '_sleep_{}'.format(str(sensorSeconds))
         AirflowTask = PythonOperator(task_id=sensorTaskID, python_callable=sleep_task, op_kwargs=kwargs, dag=dag, pool='sensors')
-    
+
     return AirflowTask
 
 def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
@@ -504,7 +528,7 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
     if 'Dep' in tasksDict[task]:
         for dep in tasksDict[task]['Dep']:
             airflowTasksDict[newtask].set_upstream(airflowTasksDict[dep]) # dep's
-   
+
     if 'OnFail' in tasksDict[task]:
         if tasksDict[task]['OnFail'].get('mail') != None:
             airflowTasksDict[newtask].email_on_failure = True
@@ -515,10 +539,10 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
 
     if 'Retries_delay' in tasksDict[task]:
         airflowTasksDict[newtask].retry_delay = timedelta(seconds = int(tasksDict[task]['Retries_delay']))
-    
+
     if 'Retries_ExponentialDelay' in tasksDict[task]:
         airflowTasksDict[newtask].retry_exponential_backoff = tasksDict[task]['Retries_ExponentialDelay']
-        
+
     if 'StartTime' in tasksDict[task]:
         hour = tasksDict[task]['StartTime'][0]
         minute = tasksDict[task]['StartTime'][1]
@@ -529,7 +553,7 @@ def addparams_totask(task, newtask, dag, tasksDict, airflowTasksDict):
             SensorTask = TimeDeltaSensor(delta=sensorTime, task_id=sensorTaskID, pool='sensors', dag=dag)
             airflowTasksDict[sensorTaskID] = SensorTask
         airflowTasksDict[newtask].set_upstream(airflowTasksDict[sensorTaskID])
-    
+
     if 'Pool' in tasksDict[task]:
         setpool = tasksDict[task]['Pool']
         airflowTasksDict[newtask].pool = setpool
@@ -542,7 +566,7 @@ def create_tasks(tasksDict, airflowTasksDict, dag):
         Create Airflow tasks from ``Dict``
     """
     for task in tasksDict.keys():
-        
+
         if 'Soft' in tasksDict[task]:
             if type(tasksDict[task]["TaskId"]) is str:
                 task_id = clean_for_taskid(task)
